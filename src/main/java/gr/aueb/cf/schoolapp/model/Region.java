@@ -26,7 +26,7 @@ public class Region {
 
     @Getter(AccessLevel.PACKAGE)
     @Setter(AccessLevel.NONE)
-    @OneToMany(mappedBy = "region", fetch = FetchType.LAZY)                 //Note that this relationship doesn't control the FK. The FK (region_id) is already being controlled by the field "region" within the Teacher class. (Note: mappedBy = "region" refers to the JAVA class field, while on the other side (Teacher) the @JoinColumn(...) refers to the DB column).
+    @OneToMany(mappedBy = "region", fetch = FetchType.LAZY)                 //Note that this relationship doesn't control the FK. The FK (region_id) is already being controlled by the field "region" within the Teacher class. (Note: mappedBy = "region" refers to the JAVA class field, while on the other side (Teacher) the @JoinColumn(....) refers to the DB column).
     private Set<Teacher> teachers = new HashSet<>();                          //Set because we don't want duplicates, and we don't mind the order. Immediately initializes with new HashSet<>() in order ot avoid potential NullPointerException.
 
     public Set<Teacher> getAllTeachers() {
