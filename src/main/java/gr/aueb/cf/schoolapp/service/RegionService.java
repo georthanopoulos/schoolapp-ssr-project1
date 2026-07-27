@@ -12,7 +12,7 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 @Slf4j                                                                 // with this we can have a logger.
-public class RegionService implements IRegionService{
+public class RegionService implements IRegionService {
 
     private final RegionRepository regionRepository;
     private final Mapper mapper;
