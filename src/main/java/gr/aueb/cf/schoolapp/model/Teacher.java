@@ -35,6 +35,12 @@ public class Teacher extends AbstractEntity {
     @JoinColumn(name = "region_id")                                                //At "teachers" table a column named "region_id" will exist (FK towards "regions" table).
     private Region region;
 
+    public Teacher(String firstname, String lastname, String vat) {                // Constructor
+        this.firstname = firstname;
+        this.lastname = lastname;
+        this.vat = vat;
+    }
+
     @PrePersist                                                                    //JPA lifecycle callback: this method runs automatically, just before the entity gets inserted (insert) for the first time. ("If it has no UUID, create a random new now").
     public void initializeUUID() {
         if (uuid == null) uuid = UUID.randomUUID();
