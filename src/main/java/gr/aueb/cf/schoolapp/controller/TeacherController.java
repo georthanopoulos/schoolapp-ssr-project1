@@ -1,9 +1,13 @@
 package gr.aueb.cf.schoolapp.controller;
 
+import gr.aueb.cf.schoolapp.core.exceptions.EntityAlreadyExistsException;
+import gr.aueb.cf.schoolapp.core.exceptions.EntityInvalidArgumentException;
 import gr.aueb.cf.schoolapp.dto.RegionReadOnlyDTO;
 import gr.aueb.cf.schoolapp.dto.TeacherInsertDTO;
+import gr.aueb.cf.schoolapp.dto.TeacherReadOnlyDTO;
 import gr.aueb.cf.schoolapp.service.IRegionService;
 import gr.aueb.cf.schoolapp.service.ITeacherService;
+import gr.aueb.cf.schoolapp.validator.TeacherInsertValidator;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,7 +29,7 @@ public class TeacherController {
 
     private final ITeacherService teacherService;
     private final IRegionService regionService;
-//    private final TeacherInsertValidator teacherInsertValidator
+    private final TeacherInsertValidator teacherInsertValidator;
 
 //    @Autowired
 //    public TeacherController(ITeacherService teacherService, IRegionService regionService) {
@@ -46,7 +50,37 @@ public class TeacherController {
                                 BindingResult bindingResult, Model model,
                                 RedirectAttributes redirectAttributes) {
 
+        teacherInsertValidator.validate(teacherInsertDTO, bindingResult);               // Business Rules
 
+        if (bindingResult.hasErrors()) {
+//            model.addAttribute("regionsReadOnlyDTO", regions());
+            return "teacher-insert";
+        }
+
+
+        try {
+            // save teacher
+            TeacherReadOnlyDTO teacherReadOnlyDTO = teacherService.saveTeacher(teacherInsertDTO);
+
+            // returns a success page
+
+            // PRG -- Post Redirect Get    --- http code 302 -> redirect. Then Browser will make a get call to teacher-success.
+            redirectAttributes.addAttribute("teacherReadOnlyDTO", teacherReadOnlyDTO);            // This is the best way in order to avoid the duplicate insert by pressing F5
+            return "redirect:/teachers/success";                                            // Controller
+
+        } catch (EntityAlreadyExistsException | EntityInvalidArgumentException e) {
+            model.addAttribute("errorMessage", e.getMessage());                             //error message -> see HTML. It will get the message from e.getMessage().
+            return "teacher-insert";
+        }
+    }
+
+
+    @GetMapping
+    public String teacherInsertSuccess(Model model) {
+        if (!model.containsAttribute("teacherInsertDTO")) {             // Controls F5 (Refresh)
+            return "redirect:/teachers";
+        }
+        return "teacher-success";
     }
 
 
