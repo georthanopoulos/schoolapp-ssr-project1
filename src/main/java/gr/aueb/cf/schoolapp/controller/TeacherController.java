@@ -4,6 +4,7 @@ import gr.aueb.cf.schoolapp.dto.RegionReadOnlyDTO;
 import gr.aueb.cf.schoolapp.dto.TeacherInsertDTO;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -22,6 +23,11 @@ public class TeacherController {
 
 //    private final ITeacherService teacherService;
 //    private final IRegionService regionService;
+//    private final TeacherInsertValidator teacherInsertValidator
+
+
+    @Autowired
+
 
     @GetMapping("/insert")
     public String getTeacherForm(Model model) {
