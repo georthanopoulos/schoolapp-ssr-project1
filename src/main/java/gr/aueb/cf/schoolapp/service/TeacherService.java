@@ -45,23 +45,23 @@ public class TeacherService implements ITeacherService {
             }
 
             Region region = regionRepository.findById(dto.regionId())
-                    .orElseThrow(() -> new EntityInvalidArgumentException("Region id " + dto.regionId() + " not found"));
+                    .orElseThrow(() -> new EntityInvalidArgumentException("Region id= " + dto.regionId() + " not found"));
 
             Teacher teacher = mapper.mapToTeacherEntity(dto);
             region.addTeacher(teacher);
-            teacherRepository.save(teacher);                                  // pre-persist  --both save and update
-            log.info("Teacher with vat= {} saved successfully ", dto.vat());   // Structured logging. {} corresponds to , ...vat().  -- Parameterized placeholder
+            teacherRepository.save(teacher);                                  // pre-persist (both save and update) - saved teacher
+            log.info("Teacher with vat={} saved successfully ", dto.vat());   // Structured Logging. {} corresponds to: xxx.vat().  -- Parameterized placeholder pattern
 
             return mapper.mapToTeacherReadOnlyDTO(teacher);
 
         } catch (EntityAlreadyExistsException e) {
-            log.warn("Save failed for teacher with VAT= {}. Teacher already exists", dto.vat());
+            log.warn("Save failed for teacher with VAT={}. Teacher already exists", dto.vat());
             throw e;
         } catch (EntityInvalidArgumentException e) {
-            log.warn("Save failed for teacher with VAT= {}. Region with id= {} invalid", dto.vat(), dto.regionId());
+            log.warn("Save failed for teacher with VAT={}. Region with id={} invalid", dto.vat(), dto.regionId());
             throw e;
         } catch (DataIntegrityViolationException e) {
-            log.warn("Save failed for teacher with VAT= {}. Teacher exists", dto.vat());
+            log.warn("Save failed for teacher with VAT={}. Teacher exists", dto.vat());
             throw new EntityAlreadyExistsException("Save failed for teacher with VAT= " + dto.vat() + "already exists.");
         }
     }
@@ -71,4 +71,5 @@ public class TeacherService implements ITeacherService {
     public boolean isTeacherExistsByVat(String vat) {
         return teacherRepository.findByVat(vat).isPresent();
     }
+
 }

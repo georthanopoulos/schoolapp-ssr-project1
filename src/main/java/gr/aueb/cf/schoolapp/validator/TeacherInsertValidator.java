@@ -21,13 +21,13 @@ public class TeacherInsertValidator implements Validator {
     }
 
     @Override
-    public void validate(Object target, Errors errors) {            // Binding result is sub-interface of Errors.
+    public void validate(Object target, Errors errors) {                   // Binding result is sub-interface of Errors.
         TeacherInsertDTO teacherInsertDTO = (TeacherInsertDTO) target;
 
         if (teacherInsertDTO.vat() != null &&
                 teacherService.isTeacherExistsByVat(teacherInsertDTO.vat())) {
-            log.info ("Validation failed. Teacher with VAT= {} already exists", teacherInsertDTO.vat());
-            errors.rejectValue("vat", "vat.teacher.exists");                                       // TODO localization
+            log.info ("Validation failed. Teacher with VAT={} already exists", teacherInsertDTO.vat());
+            errors.rejectValue("vat", "vat.teacher.exists");           // TODO localization
         }
     }
 }

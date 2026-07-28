@@ -59,14 +59,14 @@ public class TeacherController {
 
 
         try {
-            // save teacher
+            // saves the teacher
             TeacherReadOnlyDTO teacherReadOnlyDTO = teacherService.saveTeacher(teacherInsertDTO);
 
             // returns a success page
 
-            // PRG -- Post Redirect Get    --- http code 302 -> redirect. Then Browser will make a get call to teacher-success.
+            // PRG -- Post-Redirect-Get     --- http code 302 -> redirect. Then Browser will make a get call to teacher-success.
             redirectAttributes.addAttribute("teacherReadOnlyDTO", teacherReadOnlyDTO);            // This is the best way in order to avoid the duplicate insert by pressing F5
-            return "redirect:/teachers/success";                                            // Controller
+            return "redirect:/teachers/success";              // Controller
 
         } catch (EntityAlreadyExistsException | EntityInvalidArgumentException e) {
             model.addAttribute("errorMessage", e.getMessage());                             //error message -> see HTML. It will get the message from e.getMessage().
@@ -77,14 +77,14 @@ public class TeacherController {
 
     @GetMapping("/success")
     public String teacherInsertSuccess(Model model) {
-        if (!model.containsAttribute("teacherReadOnlyDTO")) {             // Controls F5 (Refresh)
+        if (!model.containsAttribute("teacherReadOnlyDTO")) {             // Controls F5 - refresh
             return "redirect:/teachers";
         }
         return "teacher-success";
     }
 
 
-    @ModelAttribute("regionsReadOnlyDTO")                                // Executed prior to any request (GET) handler.
+    @ModelAttribute("regionsReadOnlyDTO")                                // Executed before every request handler (GET).
     public List<RegionReadOnlyDTO> regions() {
 //        return regionService.findAllRegionsSortedByName();
 
