@@ -28,4 +28,17 @@ public abstract class AbstractEntity {                            // The class i
     @LastModifiedDate                                                                                  // Audit Trail (@modification) - It gets updated everytime the entity gets updated.
     @Column(name = "updated_at", nullable = false, columnDefinition = "DATETIME")
     private Instant updatedAt;
+
+    @Column(nullable = false)
+    private boolean deleted;
+
+    @Column(name = "deleted_at", columnDefinition = "DATETIME")
+    private Instant deletedAt;          // UTC   -- the Instant is an ultimate time reference point!
+
+
+    // Helper method
+    public void softDelete() {
+        this.deleted = true;
+        this.deletedAt = Instant.now();
+    }
 }
