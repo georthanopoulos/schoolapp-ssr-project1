@@ -11,6 +11,9 @@ import gr.aueb.cf.schoolapp.validator.TeacherInsertValidator;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -81,6 +84,14 @@ public class TeacherController {
             return "redirect:/teachers";
         }
         return "teacher-success";
+    }
+
+    public String getPaginatedTeachersDeletedFalse(@PageableDefault(page = 0, size = 5, sort = "lastname") Pageable pageable,
+                                                   Model model) {
+        Page<TeacherReadOnlyDTO> teachersPage = teacherService.getPaginatedTeachersDeletedFalse(pageable);
+        model.addAttribute("teachers", teachersPage.getContent());
+        model.addAttribute("page", teachersPage);
+        return "teachers";
     }
 
 
