@@ -37,7 +37,7 @@ public abstract class AbstractEntity {                            // The class i
 
 
     // Helper method
-    public void softDelete() {
+    public void softDelete() {                        // softDelete = Update and flagged as deleted!
         this.deleted = true;
         this.deletedAt = Instant.now();
     }
