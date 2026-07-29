@@ -2,6 +2,8 @@ package gr.aueb.cf.schoolapp.service;
 
 import gr.aueb.cf.schoolapp.core.exceptions.EntityAlreadyExistsException;
 import gr.aueb.cf.schoolapp.core.exceptions.EntityInvalidArgumentException;
+import gr.aueb.cf.schoolapp.core.exceptions.EntityNotFoundException;
+import gr.aueb.cf.schoolapp.dto.TeacherEditDTO;
 import gr.aueb.cf.schoolapp.dto.TeacherInsertDTO;
 import gr.aueb.cf.schoolapp.dto.TeacherReadOnlyDTO;
 import gr.aueb.cf.schoolapp.mapper.Mapper;
@@ -18,9 +20,11 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Objects;
+
 @Service
 @Slf4j
-@RequiredArgsConstructor                                                  // Used ONLY when the fields below are set to: "private final" and thus the constructor in comments is not needed to be written!
+@RequiredArgsConstructor                                                       // Used ONLY when the fields below are set to: "private final" and thus the constructor in comments is not needed to be written!
 public class TeacherService implements ITeacherService {
 
     private final TeacherRepository teacherRepository;
@@ -34,16 +38,15 @@ public class TeacherService implements ITeacherService {
 //        this.mapper = mapper;
 //    }
 
-
     @Override
-    @Transactional(rollbackFor = { EntityAlreadyExistsException.class, EntityInvalidArgumentException.class })        // Το transactional καλυπτει ολα τα runtime exceptions. εμεις θέλουμε και στα δικά μας exceptions όμως!
+    @Transactional(rollbackFor = { EntityAlreadyExistsException.class, EntityInvalidArgumentException.class })    // Το transactional καλυπτει ολα τα runtime exceptions. εμεις θέλουμε και στα δικά μας exceptions όμως!
     public TeacherReadOnlyDTO saveTeacher(TeacherInsertDTO dto)
-        throws EntityAlreadyExistsException, EntityInvalidArgumentException {
+            throws EntityAlreadyExistsException, EntityInvalidArgumentException {
 
         try {
 //            if (dto.vat() != null && teacherRepository.findByVat(dto.vat()).isPresent()) {
             if (dto.vat() != null && isTeacherExistsByVat(dto.vat())) {
-                throw new EntityAlreadyExistsException("Teacher with VAT= " + dto.vat() + "already exists");
+                throw new EntityAlreadyExistsException("Teacher with VAT= " + dto.vat() + " already exists");
             }
 
             Region region = regionRepository.findById(dto.regionId())
@@ -51,12 +54,10 @@ public class TeacherService implements ITeacherService {
 
             Teacher teacher = mapper.mapToTeacherEntity(dto);
             region.addTeacher(teacher);
-            teacherRepository.save(teacher);                                  // pre-persist (both save and update) - saved teacher
-            log.info("Teacher with vat={} saved successfully ", dto.vat());   // Structured Logging. {} corresponds to: xxx.vat().  -- Parameterized placeholder pattern
-
-            return mapper.mapToTeacherReadOnlyDTO(teacher);
-
-        } catch (EntityAlreadyExistsException e) {
+            teacherRepository.save(teacher);                                           // pre-persist (both save and update) - saved teacher
+            log.info("Teacher with vat={} save successfully ", dto.vat());             // Structured Logging. {} corresponds to: xxx.vat().  -- Parameterized placeholder pattern.
+            return  mapper.mapToTeacherReadOnlyDTO(teacher);
+        } catch (EntityAlreadyExistsException  e) {
             log.warn("Save failed for teacher with VAT={}. Teacher already exists", dto.vat());
             throw e;
         } catch (EntityInvalidArgumentException e) {
@@ -64,7 +65,52 @@ public class TeacherService implements ITeacherService {
             throw e;
         } catch (DataIntegrityViolationException e) {
             log.warn("Save failed for teacher with VAT={}. Teacher exists", dto.vat());
-            throw new EntityAlreadyExistsException("Save failed for teacher with VAT= " + dto.vat() + "already exists.");
+            throw new EntityAlreadyExistsException("Save failed for teacher with VAT= " + dto.vat() + " already exists");
+        }
+    }
+
+    @Override
+    @Transactional(rollbackFor = { EntityNotFoundException.class, EntityAlreadyExistsException.class, EntityInvalidArgumentException.class })
+    public TeacherReadOnlyDTO updateTeacher(TeacherEditDTO dto)
+            throws EntityNotFoundException, EntityAlreadyExistsException, EntityInvalidArgumentException {
+
+        try {
+            Teacher teacher = teacherRepository.findByUuidAndDeletedFalse(dto.uuid())
+                    .orElseThrow(() -> new  EntityNotFoundException("Teacher with uuid= " + dto.uuid() + " not found"));
+
+            if (!teacher.getVat().equals(dto.vat())) {  // TODO - use Objects utility class for null safety
+                if (teacherRepository.findByVatAndDeletedFalse(dto.vat()).isPresent()) {
+                    throw new EntityAlreadyExistsException("Teacher with VAT= " + dto.vat() + " already exists");
+                }
+                teacher.setVat(dto.vat());
+            }
+
+            teacher.setFirstname(dto.firstname());
+            teacher.setLastname(dto.lastname());
+
+            if (!Objects.equals(teacher.getRegion().getId(), dto.regionId())) {
+                Region region = regionRepository.findById(dto.regionId())
+                        .orElseThrow(() -> new EntityInvalidArgumentException("Region id= " + dto.regionId() + " not found"));
+                Region oldRegion = teacher.getRegion();
+
+                if (oldRegion != null) {
+                    oldRegion.removeTeacher(teacher);
+                }
+                region.addTeacher(teacher);
+            }
+
+            teacherRepository.save(teacher);        // προαιρετικό  dirty check
+            log.info("Teacher with VAT={} update successfully ", dto.vat());
+            return  mapper.mapToTeacherReadOnlyDTO(teacher);
+        } catch (EntityNotFoundException e) {
+            log.warn("Update failed for teacher with uuid={}. Teacher not found", dto.uuid());
+            throw e;
+        } catch (EntityAlreadyExistsException e) {
+            log.warn("Update failed for teacher with uuid={}. Teacher already exists", dto.uuid());
+            throw e;
+        } catch (EntityInvalidArgumentException e) {
+            log.warn("Update failed for teacher with uuid={}. Region with id={} invalid", dto.uuid(), dto.regionId());
+            throw e;
         }
     }
 
@@ -75,7 +121,6 @@ public class TeacherService implements ITeacherService {
         log.debug("Get paginated teachers not deleted returned successfully page={}, size={}",
                 teachersPage.getNumber(), teachersPage.getSize());
         return teachersPage.map(mapper::mapToTeacherReadOnlyDTO);
-
     }
 
     @Override
@@ -85,13 +130,15 @@ public class TeacherService implements ITeacherService {
         log.debug("Get paginated teachers returned successfully page={}, size={}",
                 teachersPage.getNumber(), teachersPage.getSize());
         return teachersPage.map(mapper::mapToTeacherReadOnlyDTO);
-
     }
+
+
 
     @Override
     @Transactional(readOnly = true)
     public boolean isTeacherExistsByVat(String vat) {
         return teacherRepository.findByVat(vat).isPresent();
     }
+
 
 }
