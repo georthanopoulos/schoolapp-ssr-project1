@@ -65,7 +65,7 @@ public class TeacherController {
             // returns a success page
 
             // PRG -- Post-Redirect-Get     --- http code 302 -> redirect. Then Browser will make a get call to teacher-success.
-            redirectAttributes.addAttribute("teacherReadOnlyDTO", teacherReadOnlyDTO);            // This is the best way in order to avoid the duplicate insert by pressing F5
+            redirectAttributes.addFlashAttribute("teacherReadOnlyDTO", teacherReadOnlyDTO);            // This is the best way in order to avoid the duplicate insert by pressing F5
             return "redirect:/teachers/success";              // Controller
 
         } catch (EntityAlreadyExistsException | EntityInvalidArgumentException e) {
@@ -86,13 +86,13 @@ public class TeacherController {
 
     @ModelAttribute("regionsReadOnlyDTO")                                // Executed before every request handler (GET).
     public List<RegionReadOnlyDTO> regions() {
-//        return regionService.findAllRegionsSortedByName();
+        return regionService.findAllRegionsSortedByName();
 
-        return List.of(
-                new RegionReadOnlyDTO(1L, "Αθήνα"),
-                new RegionReadOnlyDTO(2L, "Βόλος"),
-                new RegionReadOnlyDTO(3L, "Θεσσαλονίκη")
-        );
+//        return List.of(
+//                new RegionReadOnlyDTO(1L, "Αθήνα"),
+//                new RegionReadOnlyDTO(2L, "Βόλος"),
+//                new RegionReadOnlyDTO(3L, "Θεσσαλονίκη")
+//        );
     }
 
 
