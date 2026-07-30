@@ -4,6 +4,7 @@ import gr.aueb.cf.schoolapp.core.exceptions.EntityAlreadyExistsException;
 import gr.aueb.cf.schoolapp.core.exceptions.EntityInvalidArgumentException;
 import gr.aueb.cf.schoolapp.core.exceptions.EntityNotFoundException;
 import gr.aueb.cf.schoolapp.dto.TeacherEditDTO;
+import gr.aueb.cf.schoolapp.dto.TeacherEditReadOnlyDTO;
 import gr.aueb.cf.schoolapp.dto.TeacherInsertDTO;
 import gr.aueb.cf.schoolapp.dto.TeacherReadOnlyDTO;
 import gr.aueb.cf.schoolapp.mapper.Mapper;
@@ -21,6 +22,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Objects;
+import java.util.UUID;
 
 @Service
 @Slf4j
@@ -99,7 +101,7 @@ public class TeacherService implements ITeacherService {
                 region.addTeacher(teacher);
             }
 
-            teacherRepository.save(teacher);        // προαιρετικό  dirty check
+            teacherRepository.save(teacher);                                             // προαιρετικό  dirty check
             log.info("Teacher with VAT={} update successfully ", dto.vat());
             return  mapper.mapToTeacherReadOnlyDTO(teacher);
         } catch (EntityNotFoundException e) {
@@ -133,6 +135,40 @@ public class TeacherService implements ITeacherService {
     }
 
 
+    @Override
+    @Transactional(readOnly = true)
+    public TeacherEditDTO getTeacherByUUIDDeletedFalse(UUID uuid) throws EntityNotFoundException {
+
+        try {
+            Teacher teacher = teacherRepository.findByUuidAndDeletedFalse(uuid)
+                    .orElseThrow(() -> new  EntityNotFoundException("Teacher with uuid= " + uuid+ " not found"));
+            log.debug("Teacher with uuid={} returned successfully.", uuid);
+            return mapper.mapToTeacherEditDTO(teacher);
+        } catch (EntityNotFoundException e) {
+            log.warn("Get teacher with uuid={} not found", uuid);
+            throw e;
+        }
+    }
+
+    @Override
+    @Transactional(rollbackFor = EntityNotFoundException.class)
+    public TeacherReadOnlyDTO deleteTeacherByUUID(UUID uuid) throws EntityNotFoundException {
+
+        try {
+            Teacher teacher = teacherRepository.findByUuidAndDeletedFalse(uuid)
+                    .orElseThrow(() -> new EntityNotFoundException("Teacher with uuid= " + uuid+ " not found"));
+
+            teacher.softDelete();
+            // no explicit save needed due to dirty checking
+            // teacherRepository.save(teacher);
+            log.info("Teacher with uuid={} deleted successfully.", uuid);
+            return mapper.mapToTeacherReadOnlyDTO(teacher);
+
+        } catch (EntityNotFoundException e) {
+            log.warn("Delete failed. Teacher with uuid={} not found", uuid);
+            throw e;
+        }
+    }
 
     @Override
     @Transactional(readOnly = true)

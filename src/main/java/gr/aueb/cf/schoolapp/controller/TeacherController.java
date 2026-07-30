@@ -2,11 +2,11 @@ package gr.aueb.cf.schoolapp.controller;
 
 import gr.aueb.cf.schoolapp.core.exceptions.EntityAlreadyExistsException;
 import gr.aueb.cf.schoolapp.core.exceptions.EntityInvalidArgumentException;
-import gr.aueb.cf.schoolapp.dto.RegionReadOnlyDTO;
-import gr.aueb.cf.schoolapp.dto.TeacherInsertDTO;
-import gr.aueb.cf.schoolapp.dto.TeacherReadOnlyDTO;
+import gr.aueb.cf.schoolapp.core.exceptions.EntityNotFoundException;
+import gr.aueb.cf.schoolapp.dto.*;
 import gr.aueb.cf.schoolapp.service.IRegionService;
 import gr.aueb.cf.schoolapp.service.ITeacherService;
+import gr.aueb.cf.schoolapp.validator.TeacherEditValidator;
 import gr.aueb.cf.schoolapp.validator.TeacherInsertValidator;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -17,13 +17,11 @@ import org.springframework.data.web.PageableDefault;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.List;
+import java.util.UUID;
 
 @Controller
 @RequestMapping("/teachers")
@@ -33,6 +31,7 @@ public class TeacherController {
     private final ITeacherService teacherService;
     private final IRegionService regionService;
     private final TeacherInsertValidator teacherInsertValidator;
+    private final TeacherEditValidator teacherEditValidator;
 
 //    @Autowired
 //    public TeacherController(ITeacherService teacherService, IRegionService regionService) {
@@ -95,6 +94,68 @@ public class TeacherController {
         return "teachers";
     }
 
+    @GetMapping("/edit/{uuid}")
+    public String getTeacherEdit(@PathVariable UUID uuid, Model model) throws EntityNotFoundException {
+        try {
+            TeacherEditDTO teacherEditDTO = teacherService.getTeacherByUUIDDeletedFalse(uuid);
+            model.addAttribute("teacherEditDTO", teacherEditDTO);
+        } catch (EntityNotFoundException e) {
+            model.addAttribute("errorMessage", e.getMessage());
+        }
+        return "teacher-edit";
+    }
+
+    @PostMapping("/edit")
+    public String updateTeacher(@Valid @ModelAttribute TeacherEditDTO teacherEditDTO,
+                                BindingResult bindingResult, RedirectAttributes redirectAttributes,
+                                Model model) {
+
+        teacherEditValidator.validate(teacherEditDTO, bindingResult);
+        if (bindingResult.hasErrors()) {
+            return "teacher-edit";
+        }
+
+        try {
+            TeacherReadOnlyDTO readOnlyDTO = teacherService.updateTeacher(teacherEditDTO);
+            redirectAttributes.addFlashAttribute("teacherReadOnlyDTO", readOnlyDTO);
+            return "redirect:/teachers/update-success";
+        } catch (EntityNotFoundException | EntityAlreadyExistsException | EntityInvalidArgumentException e) {
+            model.addAttribute("errorMessage", e.getMessage());
+            return "teacher-edit";
+        }
+    }
+
+    @PostMapping("/delete/{uuid}")
+    public String deleteTeacher(@PathVariable UUID uuid, Model model,
+                                RedirectAttributes redirectAttributes) {
+
+        try {
+            TeacherReadOnlyDTO readOnlyDTO = teacherService.deleteTeacherByUUID(uuid);
+            redirectAttributes.addFlashAttribute("teacherReadOnlyDTO", readOnlyDTO);
+            return "redirect:/teachers/delete-success";
+        } catch (EntityNotFoundException e) {
+            model.addAttribute("errorMessage", e.getMessage());
+            return "teachers";
+        }
+    }
+
+    @GetMapping("/delete-success")
+    public String deleteTeacherSuccess(Model model) {
+        if (!model.containsAttribute("teacherReadOnlyDTO")) {
+            return "redirect:/teachers";
+        }
+        return  "delete-teacher-success";
+    }
+
+
+    @GetMapping("/update-success")
+    public String teacherUpdateSuccess(Model model) {
+        if (!model.containsAttribute("teacherReadOnlyDTO")) {
+            return "redirect:/teachers";
+        }
+
+        return "update-teacher-success";
+    }
 
     @ModelAttribute("regionsReadOnlyDTO")                                // Executed before every request handler (GET).
     public List<RegionReadOnlyDTO> regions() {
