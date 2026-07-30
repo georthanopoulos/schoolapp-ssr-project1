@@ -27,7 +27,6 @@ public class Mapper {
         return new TeacherEditDTO(teacher.getUuid(), teacher.getFirstname(),
                 teacher.getLastname(), teacher.getVat(), teacher.getRegion().getId());
     }
-
     public User mapToUserEntity(UserInsertDTO userInsertDTO) {
         return new User(userInsertDTO.username(), userInsertDTO.password());
     }
