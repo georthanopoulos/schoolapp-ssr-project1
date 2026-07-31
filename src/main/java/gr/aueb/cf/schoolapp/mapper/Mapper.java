@@ -8,7 +8,7 @@ import gr.aueb.cf.schoolapp.model.User;
 import org.springframework.stereotype.Component;
 
 @Component
-public class Mapper {
+public class Mapper {                           // The mapper's job is to "extract" the infos from the DTO. From each one! SOS!!!
 
     public Teacher mapToTeacherEntity(TeacherInsertDTO teacherInsertDTO) {
         return new Teacher(teacherInsertDTO.firstname(), teacherInsertDTO.lastname(), teacherInsertDTO.vat());

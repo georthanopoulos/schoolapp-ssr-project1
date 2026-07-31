@@ -18,6 +18,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -26,7 +27,7 @@ import java.util.UUID;
 
 @Service
 @Slf4j
-@RequiredArgsConstructor                                                       // Used ONLY when the fields below are set to: "private final" and thus the constructor in comments is not needed to be written!
+@RequiredArgsConstructor                                         // Used ONLY when the fields below are set to: "private final" and thus the constructor in comments is not needed to be written!
 public class TeacherService implements ITeacherService {
 
     private final TeacherRepository teacherRepository;
@@ -41,7 +42,8 @@ public class TeacherService implements ITeacherService {
 //    }
 
     @Override
-    @Transactional(rollbackFor = { EntityAlreadyExistsException.class, EntityInvalidArgumentException.class })    // Το transactional καλυπτει ολα τα runtime exceptions. εμεις θέλουμε και στα δικά μας exceptions όμως!
+    @PreAuthorize("hasAuthority('INSERT_TEACHER')")
+    @Transactional(rollbackFor = { EntityAlreadyExistsException.class, EntityInvalidArgumentException.class })    // The @Transactional covers all runtime exceptions. However, we need to cover our exceptions too.
     public TeacherReadOnlyDTO saveTeacher(TeacherInsertDTO dto)
             throws EntityAlreadyExistsException, EntityInvalidArgumentException {
 
@@ -56,8 +58,8 @@ public class TeacherService implements ITeacherService {
 
             Teacher teacher = mapper.mapToTeacherEntity(dto);
             region.addTeacher(teacher);
-            teacherRepository.save(teacher);                                           // pre-persist (both save and update) - saved teacher
-            log.info("Teacher with vat={} save successfully ", dto.vat());             // Structured Logging. {} corresponds to: xxx.vat().  -- Parameterized placeholder pattern.
+            teacherRepository.save(teacher);                                 // pre-persist (both save and update) - saved teacher
+            log.info("Teacher with vat={} save successfully ", dto.vat());   // Structured Logging. {} corresponds to: xxx.vat().  -- Parameterized placeholder pattern.
             return  mapper.mapToTeacherReadOnlyDTO(teacher);
         } catch (EntityAlreadyExistsException  e) {
             log.warn("Save failed for teacher with VAT={}. Teacher already exists", dto.vat());
@@ -72,6 +74,7 @@ public class TeacherService implements ITeacherService {
     }
 
     @Override
+    @PreAuthorize("hasAuthority('EDIT_TEACHER')")
     @Transactional(rollbackFor = { EntityNotFoundException.class, EntityAlreadyExistsException.class, EntityInvalidArgumentException.class })
     public TeacherReadOnlyDTO updateTeacher(TeacherEditDTO dto)
             throws EntityNotFoundException, EntityAlreadyExistsException, EntityInvalidArgumentException {
@@ -101,7 +104,7 @@ public class TeacherService implements ITeacherService {
                 region.addTeacher(teacher);
             }
 
-            teacherRepository.save(teacher);                                             // προαιρετικό  dirty check
+            teacherRepository.save(teacher);        // προαιρετικό  dirty check
             log.info("Teacher with VAT={} update successfully ", dto.vat());
             return  mapper.mapToTeacherReadOnlyDTO(teacher);
         } catch (EntityNotFoundException e) {
@@ -117,6 +120,7 @@ public class TeacherService implements ITeacherService {
     }
 
     @Override
+    @PreAuthorize("hasAuthority('VIEW_TEACHERS')")
     @Transactional(readOnly = true)
     public Page<TeacherReadOnlyDTO> getPaginatedTeachersDeletedFalse(Pageable pageable) {
         Page<Teacher> teachersPage = teacherRepository.findAllByDeletedFalse(pageable);
@@ -126,6 +130,7 @@ public class TeacherService implements ITeacherService {
     }
 
     @Override
+    @PreAuthorize("hasRole('ADMIN')")
     @Transactional(readOnly = true)
     public Page<TeacherReadOnlyDTO> getPaginatedTeachers(Pageable pageable) {
         Page<Teacher> teachersPage = teacherRepository.findAll(pageable);
@@ -133,7 +138,6 @@ public class TeacherService implements ITeacherService {
                 teachersPage.getNumber(), teachersPage.getSize());
         return teachersPage.map(mapper::mapToTeacherReadOnlyDTO);
     }
-
 
     @Override
     @Transactional(readOnly = true)
@@ -151,6 +155,7 @@ public class TeacherService implements ITeacherService {
     }
 
     @Override
+    @PreAuthorize("hasAuthority('DELETE_TEACHER')")
     @Transactional(rollbackFor = EntityNotFoundException.class)
     public TeacherReadOnlyDTO deleteTeacherByUUID(UUID uuid) throws EntityNotFoundException {
 
@@ -169,6 +174,7 @@ public class TeacherService implements ITeacherService {
             throw e;
         }
     }
+
 
     @Override
     @Transactional(readOnly = true)

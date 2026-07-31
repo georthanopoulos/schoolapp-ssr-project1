@@ -33,15 +33,21 @@ public class UserController {
     private final IUserService userService;
     private final IRoleService roleService;
 
+//    public UserController(IUserService userService, IRoleService roleService) {         // @RequiredArgsContructor's job. so it is not needed to be written.
+//        this.userService = userService;
+//        this.roleService = roleService;
+//    }
+
     @GetMapping("/register")
     public String getUserForm(Model model) {
         model.addAttribute("userInsertDTO", UserInsertDTO.empty());
         return "user-form";
     }
 
-    @PostMapping("/register")
+    @PostMapping("/register")                                                              // The @Valid goes along with BindingResult bindingResult.
     public String registerUser(@Valid @ModelAttribute("userInsertDTO") UserInsertDTO userInsertDTO,
                                BindingResult bindingResult, RedirectAttributes redirectAttributes, Model model) {
+
         // user validator business rules TODO
 
         if (bindingResult.hasErrors()) {
@@ -67,5 +73,4 @@ public class UserController {
     public List<RoleReadOnlyDTO> roles() {
         return roleService.findAllRolesSortedByName();
     }
-
 }
