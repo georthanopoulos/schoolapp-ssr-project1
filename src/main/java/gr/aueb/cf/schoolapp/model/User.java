@@ -32,6 +32,7 @@ public class User extends AbstractEntity implements UserDetails {
     @Column(nullable = false)                         // Hash, BCrypt
     private String password;
 
+    //@Setter(AccessLevel.PACKAGE)                   // Should have been set to Package, both for symmetric code deployment and for actual safety! However, it might be chosen to be public due to nullable = false. AGAIN, it is best practise to restrict the setter!
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "role_id", nullable = false)
     private Role role;
