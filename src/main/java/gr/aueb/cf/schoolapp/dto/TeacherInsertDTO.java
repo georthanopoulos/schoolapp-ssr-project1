@@ -5,7 +5,7 @@ import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
 // TODO localization
-public record TeacherInsertDTO(
+public record TeacherInsertDTO(                                         // It includes Validation Annotations because data come from the user (through the form) and verification is required. id/uuid don't exist yet.
         @NotNull(message = "Το όνομα δεν μπορεί να είναι κενό.")
         @Size(min = 2, message = "Το όνομα πρέπει να περιέχει τουλάχιστον δύο χαρακτήρες.")
         String firstname,
