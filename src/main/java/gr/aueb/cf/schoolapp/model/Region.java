@@ -34,7 +34,7 @@ public class Region {
     }
 
 
-    //Helper Methods
+    // Helper Methods
     public void addTeacher(Teacher teacher) {
         teachers.add(teacher);
         teacher.setRegion(this);

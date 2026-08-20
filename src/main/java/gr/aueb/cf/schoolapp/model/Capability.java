@@ -33,7 +33,7 @@ public class Capability {
         return Set.copyOf(roles);
     }
 
-    //Helper Methods
+    // Helper Methods
     public void addRole(Role role) {
         roles.add(role);
         role.getCapabilities().add(this);
