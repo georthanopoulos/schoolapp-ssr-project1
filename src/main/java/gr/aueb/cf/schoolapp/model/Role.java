@@ -44,6 +44,7 @@ public class Role {
         return Set.copyOf(users);
     }
 
+    //Helper Methods
     public void addCapability(Capability capability) {
         capabilities.add(capability);
         capability.getRoles().add(this);
