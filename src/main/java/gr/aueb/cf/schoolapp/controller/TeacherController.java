@@ -34,9 +34,12 @@ public class TeacherController {
     private final TeacherEditValidator teacherEditValidator;
 
 //    @Autowired
-//    public TeacherController(ITeacherService teacherService, IRegionService regionService) {
+//    public TeacherController(ITeacherService teacherService, IRegionService regionService,
+//                                TeacherInsertValidator teacherInsertValidator, TeacherEditValidator teacherEditValidator) {
 //        this.teacherService = teacherService;
 //        this.regionService = regionService;
+//        this.teacherInsertValidator = teacherInsertValidator;
+//        this.teacherEditValidator = teacherEditValidator;
 //    }
 
 
