@@ -70,7 +70,7 @@ public class TeacherController {
             // returns a success page
 
             // PRG -- Post-Redirect-Get     --- http code 302 -> redirect. Then Browser will make a get call to teacher-success.
-            redirectAttributes.addFlashAttribute("teacherReadOnlyDTO", teacherReadOnlyDTO);            // This is the best way in order to avoid the duplicate insert by pressing F5
+            redirectAttributes.addFlashAttribute("teacherReadOnlyDTO", teacherReadOnlyDTO);            // This is the best way in order to avoid the duplicate insert when pressing F5
             return "redirect:/teachers/success";              // Controller
 
         } catch (EntityAlreadyExistsException | EntityInvalidArgumentException e) {
