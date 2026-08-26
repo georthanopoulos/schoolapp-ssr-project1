@@ -21,7 +21,7 @@ public class TeacherInsertValidator implements Validator {
     }
 
     @Override
-    public void validate(Object target, Errors errors) {                   // Binding result is sub-interface of Errors.
+    public void validate(Object target, Errors errors) {                   // BindingResult is a sub-interface of Errors. Thus, BindingResult extends Errors!
         TeacherInsertDTO teacherInsertDTO = (TeacherInsertDTO) target;
 
         if (teacherInsertDTO.vat() != null &&
