@@ -6,8 +6,11 @@ import jakarta.validation.constraints.Size;
 
 // TODO localization
 public record TeacherInsertDTO(                                         // It includes Validation Annotations because data come from the user (through the form) and verification is required. id/uuid don't exist yet.
-        @NotNull(message = "Το όνομα δεν μπορεί να είναι κενό.")
-        @Size(min = 2, message = "Το όνομα πρέπει να περιέχει τουλάχιστον δύο χαρακτήρες.")
+//        @NotNull(message = "Το όνομα δεν μπορεί να είναι κενό.")
+//        @Size(min = 2, message = "Το όνομα πρέπει να περιέχει τουλάχιστον δύο χαρακτήρες.")
+
+        @NotNull()                              // The messages shown above and generally all the validation messages should be drawn from messages_el.properties file instead of been written directly as messages in the code for each case! SOS!
+        @Size(min = 2)                          // The same goes for every message in this page and across the project! -> Localization of messages!!!!
         String firstname,
 
         @NotNull(message = "Το επώνυμο δεν μπορεί να είναι κενό.")
